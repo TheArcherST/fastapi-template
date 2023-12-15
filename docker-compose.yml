@@ -1,0 +1,29 @@
+services:
+  api:
+    restart: unless-stopped
+    build:
+      context: .
+      network: host
+    env_file: .env
+    environment:
+      POSTGRES_HOST: database
+    volumes:
+      - type: bind
+        read_only: true
+        source: .
+        target: /usr/src/app
+    depends_on:
+      - database
+    command: ["python3", "-m", "uvicorn", "main:app", "--port", "8000", "--host", "0.0.0.0"]
+    ports:
+      - ${APP_HOST}:${APP_PORT}:8000
+  database:
+    restart: unless-stopped
+    image: postgres:latest
+    env_file: .env
+    ports:
+      - 127.0.0.1:5432:${POSTGRES_PORT}
+    volumes:
+      - database:/var/lib/postgresql/data
+volumes:
+  database:
